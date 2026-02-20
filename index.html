@@ -228,7 +228,12 @@
 
         // 產生獨一無二的 Peer ID（用來當房間代碼）
         const peerId = 'colorhunter_' + Math.random().toString(36).substr(2, 9);
-        let peer = new Peer(peerId, { host: 'peerjs.com', port: 443, path: '/peerjs' });
+        let peer = new Peer(peerId, {
+          host: '0.peerjs.com',
+          secure: true,
+          port: 443,
+          path: '/mycolorhunter'
+        });
         let conn;  // 與房主的連線物件
 
         // Peer 連線事件
@@ -753,4 +758,5 @@
         };
     </script>
 </body>
+
 </html>
