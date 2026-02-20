@@ -229,11 +229,11 @@
         // 產生獨一無二的 Peer ID（用來當房間代碼）
         const peerId = 'colorhunter_' + Math.random().toString(36).substr(2, 9);
         let peer = new Peer(peerId, {
-          host: '0.peerjs.com',
-          secure: true,
-          port: 443,
-          path: '/mycolorhunter'
-        });
+  host: 'peerjs-server.herokuapp.com',
+  secure: true,
+  port: 443,
+  path: '/mycolorhunter'
+});
         let conn;  // 與房主的連線物件
 
         // Peer 連線事件
@@ -345,29 +345,40 @@
 
         // 加入房間（其他人執行）
         function joinRoom() {
-            let roomCode = document.getElementById('joinCode').value.trim();
-            if (!roomCode) {
-                const params = new URLSearchParams(window.location.search);
-                roomCode = params.get('room');
+    let roomCode = document.getElementById('joinCode').value.trim();
+    if (!roomCode) {
+        const params = new URLSearchParams(window.location.search);
+        roomCode = params.get('room');
+    }
+    if (!roomCode) return alert('請輸入有效的房間連結或代碼');
+
+    const name = document.getElementById('joinName').value.trim() || '神秘獵人';
+
+    // 顯示「正在連線中...」
+    alert('正在連線到房間，請稍等...');
+
+    conn = peer.connect(roomCode);
+
+    conn.on('open', () => {
+        gameState.myId = peerId;
+        conn.send({
+            type: 'join',
+            player: {
+                id: peerId,
+                name,
+                avatar: gameState.myAvatar || avatars[gameState.selectedEmojiIndex]
             }
-            if (!roomCode) return alert('請輸入有效的房間連結或代碼');
+        });
+        alert('加入成功！等待房主開始遊戲～');
+    });
 
-            const name = document.getElementById('joinName').value.trim() || '神秘獵人';
+    conn.on('error', (err) => {
+        console.error('連線錯誤:', err);
+        alert('加入失敗：連線到房間伺服器失敗。\n錯誤訊息：' + err.type + '\n請房主重新建立房間，或換網路測試。');
+    });
 
-            conn = peer.connect(roomCode);
-            conn.on('open', () => {
-                gameState.myId = peerId;
-                conn.send({
-                    type: 'join',
-                    player: {
-                        id: peerId,
-                        name,
-                        avatar: gameState.myAvatar || avatars[gameState.selectedEmojiIndex]
-                    }
-                });
-            });
-            conn.on('data', handleData);
-        }
+    conn.on('data', handleData);
+}
 
         // 接收來自其他玩家的資料（最重要的訊息處理中心）
         function handleData(data) {
@@ -760,3 +771,4 @@
 </body>
 
 </html>
+
